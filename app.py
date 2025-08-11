@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from sentence_transformers import SentenceTransformer, util
 import numpy as np
+import os
+import json
 import firebase_admin
-from firebase_admin import credentials, firestore, auth
+from firebase_admin import credentials, initialize_app, firestore, auth
 import string
 
 
@@ -11,8 +13,18 @@ app = Flask(__name__)
 CORS(app)
 
 # Initialize Firebase
-cred = credentials.Certificate("firebase-key.json")
-firebase_admin.initialize_app(cred)
+# cred = credentials.Certificate("firebase-key.json")
+# firebase_admin.initialize_app(cred)
+# db = firestore.client()
+
+# Load firebase key json from environment variable
+firebase_key_json = os.getenv('FIREBASE_KEY_JSON')
+if not firebase_key_json:
+    raise RuntimeError("FIREBASE_KEY_JSON environment variable not set")
+
+cred_dict = json.loads(firebase_key_json)
+cred = credentials.Certificate(cred_dict)
+initialize_app(cred)
 db = firestore.client()
 
 # Load AI model
